@@ -1,0 +1,10 @@
+{
+  "model": "global:fast-model",
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:8787",
+    "ANTHROPIC_AUTH_TOKEN": "<YOUR-GATEWAY-API-KEY>",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "global:fast-model",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "global:default-model",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "global:fast-model"
+  }
+}

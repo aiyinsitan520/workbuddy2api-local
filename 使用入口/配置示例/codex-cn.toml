@@ -1,0 +1,11 @@
+# 仅示例，按教程合并到现有 config.toml，勿覆盖整个配置。
+model = "cn:deepseek-v4.1-flash"
+model_provider = "workbuddy_cn"
+
+[model_providers.workbuddy_cn]
+name = "WorkBuddy cn"
+base_url = "http://127.0.0.1:8787/v1"
+env_key = "WORKBUDDY_API_KEY"
+wire_api = "responses"
+requires_openai_auth = false
+supports_websockets = false

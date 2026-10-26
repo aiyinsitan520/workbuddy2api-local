@@ -1,0 +1,5 @@
+﻿{
+  "base_url": "http://127.0.0.1:7863/v1",
+  "api_key": "<YOUR-GATEWAY-API-KEY>",
+  "model": "cn:deepseek-v4.1-flash"
+}

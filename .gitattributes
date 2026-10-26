@@ -1,0 +1,24 @@
+# 统一换行符：Windows 上 autocrlf=true 会给所有文本加 CRLF，
+# 但 .sh 带 CRLF 在 Linux/macOS 上会直接报 "bad interpreter: /bin/bash^M"。
+* text=auto
+
+*.sh   text eol=lf
+*.py   text eol=lf
+*.go   text eol=lf
+*.md   text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+Dockerfile text eol=lf
+
+# PowerShell / 批处理必须是 CRLF，PowerShell 5.1 对 LF 结尾的 .ps1 容错较好但 .cmd 不是。
+*.ps1  text eol=crlf
+*.psm1 text eol=crlf
+*.cmd  text eol=crlf
+*.bat  text eol=crlf
+*.vbs  text eol=crlf
+
+# 二进制
+*.exe  binary
+*.zip  binary
+*.png  binary
+*.ico  binary

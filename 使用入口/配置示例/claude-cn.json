@@ -1,0 +1,10 @@
+{
+  "model": "cn:deepseek-v4.1-flash",
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:8787",
+    "ANTHROPIC_AUTH_TOKEN": "<YOUR-GATEWAY-API-KEY>",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "cn:deepseek-v4.1-flash",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "cn:deepseek-v4.1-flash",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "cn:deepseek-v4.1-flash"
+  }
+}

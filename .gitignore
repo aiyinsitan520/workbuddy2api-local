@@ -1,0 +1,42 @@
+# ---- 账号凭据与运行数据（绝对不能提交）----
+auths/
+backups/
+*.key
+*.pem
+.env
+.env.*
+
+# 本地生成的真实配置（用 config.example.json 代替）
+config.json
+connection.txt
+使用入口/API密钥.txt
+使用入口/admin-access.txt
+
+# ---- 构建产物 ----
+/wb2api
+/wb2api.exe
+/login
+/login.exe
+/credit
+/credit.exe
+/trial.exe
+/signin_bin
+runtime/
+*.tmp
+*.exe~
+
+# ---- 运行期目录 ----
+data/
+logs/
+output/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ---- 编辑器 ----
+.idea/
+.vscode/
+.playwright-cli/

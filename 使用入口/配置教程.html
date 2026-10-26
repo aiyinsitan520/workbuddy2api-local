@@ -1,0 +1,392 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WorkBuddy2API 本地版：启动与配置教程</title><style>body{margin:0;background:#f5f7f3;color:#243d32;font:15px/1.85 "Segoe UI","Microsoft YaHei",sans-serif}nav{position:fixed;top:0;bottom:0;width:235px;padding:28px 20px;background:#163c30;color:white;overflow:auto;box-sizing:border-box}nav b{font-size:18px;display:block;margin-bottom:18px}nav a{display:block;color:#d4e4d6;text-decoration:none;padding:8px 0;font-size:13px}main{max-width:920px;padding:40px 45px;margin-left:235px}h1{font-size:29px;line-height:1.5;margin:0 0 24px}h2{font-size:23px;scroll-margin-top:25px;border-top:1px solid #d9e4d6;padding-top:26px;margin-top:36px}a{color:#276c51}code{background:#e5ece3;padding:2px 5px;border-radius:4px;font:13px Consolas,monospace;overflow-wrap:anywhere}pre{background:#183b31;color:#ecf4e7;padding:20px;border-radius:9px;overflow:auto;line-height:1.7}pre code{background:none;padding:0;color:inherit}.table{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px;background:white}td,th{padding:10px 13px;border:1px solid #dce5d9;text-align:left;vertical-align:top}th{background:#e9f0e5}p{margin:14px 0}@media(max-width:850px){nav{position:static;width:auto}nav a{display:inline-block;margin-right:18px}main{margin:0;padding:25px 18px}h1{font-size:25px}}</style><body><nav><b>WorkBuddy 教程</b><a href="#section-1">1. 日常只需要这几个文件</a><a href="#section-2">2. 地址和密钥怎么填</a><a href="#section-3">3. 国内和国际模型选择</a><a href="#section-4">4. CC Switch 配置</a><a href="#section-5">5. Codex 手动接入</a><a href="#section-6">6. Claude Code 手动接入</a><a href="#section-7">7. Cherry Studio / OpenAI Chat 客户端</a><a href="#section-8">8. PowerShell / Python 调用</a><a href="#section-9">9. 账号、积分与定时任务</a><a href="#section-10">10. 提示词与高级配置</a><a href="#section-11">11. 常见问题</a><a href="#section-12">12. 备份与迁移</a></nav><main><h1>WorkBuddy2API 本地版：启动与配置教程</h1>
+<p>本教程与配套快捷方式位于部署目录的 <code>使用入口</code> 文件夹。文中所有路径都以<strong>部署目录</strong>为基准，你可以把整个目录放在任意盘符下。</p>
+<p>所有协议入口共享同一个账号池；模型前缀（<code>cn:</code> / <code>global:</code>）决定路由到国内版还是国际版，不会把国内积分用于国际模型。国内和国际积分在工作台概览、账号页分别汇总。</p>
+<h2 id="section-1">1. 日常只需要这几个文件</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>启动服务.cmd</code></td>
+<td>启动网关、协议兼容层、管理后台并打开浏览器；已运行时复用现有进程</td>
+</tr>
+<tr>
+<td><code>停止服务.cmd</code></td>
+<td>停止以上三个服务，保留账号与配置</td>
+</tr>
+<tr>
+<td><code>重启服务.cmd</code></td>
+<td>先停止再启动，适合修改配置后使用</td>
+</tr>
+<tr>
+<td><code>检查服务.cmd</code></td>
+<td>检查服务、账号数量与模型列表，不发送对话</td>
+</tr>
+<tr>
+<td><code>复制API密钥.cmd</code></td>
+<td>从当前 <code>config.json</code> 读取密钥并复制到剪贴板</td>
+</tr>
+<tr>
+<td><code>刷新接入信息.cmd</code></td>
+<td>重新生成密钥文本与客户端配置示例；修改密钥后使用</td>
+</tr>
+<tr>
+<td><code>打开管理后台.cmd</code></td>
+<td>打开 7864 工作台，不启动服务</td>
+</tr>
+<tr>
+<td><code>打开配置教程.cmd</code></td>
+<td>用浏览器打开本教程的 HTML 版</td>
+</tr>
+<tr>
+<td><code>API测试.cmd</code></td>
+<td>交互输入一条真实请求，选择国内／国际和协议，可能消耗积分</td>
+</tr>
+<tr>
+<td><code>API密钥.txt</code></td>
+<td>一行完整网关密钥，可直接复制（安装时生成，仅存本机）</td>
+</tr>
+<tr>
+<td><code>admin-access.txt</code></td>
+<td>管理后台、API 地址、完整密钥及接入信息（安装时生成）</td>
+</tr>
+<tr>
+<td><code>配置示例</code></td>
+<td>分国内和国际的 Codex TOML、Claude JSON、OpenAI JSON 示例</td>
+</tr>
+</tbody>
+</table></div>
+<p>可以把快捷方式放到桌面，但要保留 <code>使用入口</code> 文件夹在部署目录内，脚本依赖这个相对位置。</p>
+<p>重启电脑后双击 <code>启动服务.cmd</code>。安装脚本会注册一个看门狗计划任务，掉线 1 分钟内自动拉起；但如果电脑关机或睡眠，自动任务不会执行。CMD 启动窗口关闭后后台服务继续运行，停止请用 <code>停止服务.cmd</code>。遇到「任务正在运行」的提示时，等当前任务结束再停。</p>
+<h2 id="section-2">2. 地址和密钥怎么填</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>使用场景</th>
+<th>填写地址</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>管理后台</td>
+<td><code>http://127.0.0.1:7864/</code></td>
+<td>浏览器打开；本机后台没有独立账号密码</td>
+</tr>
+<tr>
+<td>OpenAI Chat 客户端</td>
+<td><code>http://127.0.0.1:7863/v1</code></td>
+<td>OpenAI SDK、Cherry Studio、普通 Chat 接入</td>
+</tr>
+<tr>
+<td>Codex / Responses 客户端</td>
+<td><code>http://127.0.0.1:8787/v1</code></td>
+<td>必须使用支持 Responses 的 8787 入口</td>
+</tr>
+<tr>
+<td>Claude Code / Anthropic SDK</td>
+<td><code>http://127.0.0.1:8787</code></td>
+<td><strong>不加 /v1</strong>，SDK 自行追加 /v1/messages</td>
+</tr>
+<tr>
+<td>旧后台地址</td>
+<td><code>http://127.0.0.1:8787/admin/</code></td>
+<td>自动跳转至 7864</td>
+</tr>
+</tbody>
+</table></div>
+<p>两个 API 入口使用同一个网关密钥：双击 <code>复制API密钥.cmd</code>，或读取 <code>API密钥.txt</code>。<strong>这不是 WorkBuddy 账号的 accessToken。</strong> 如需放行旧客户端密钥，可把哈希写进 <code>compat/config.json</code> 的 <code>legacy_api_keys</code>，该表默认是空数组。</p>
+<p>完整端点：</p>
+<pre><code class="language-text">GET  http://127.0.0.1:7863/v1/models
+POST http://127.0.0.1:7863/v1/chat/completions
+GET  http://127.0.0.1:8787/v1/models
+POST http://127.0.0.1:8787/v1/chat/completions
+POST http://127.0.0.1:8787/v1/responses
+POST http://127.0.0.1:8787/v1/messages
+</code></pre>
+<p>Chat 和 Responses 鉴权为 <code>Authorization: Bearer &lt;API密钥&gt;</code>；Messages 兼容层也支持 <code>x-api-key: &lt;API密钥&gt;</code>。Base URL 不要填写成完整的 <code>/chat/completions</code> 地址。</p>
+<p>网关默认只监听 <code>127.0.0.1</code>。其他电脑、手机、Docker 容器和 WSL 内的 <code>127.0.0.1</code> 指向各自环境，不能直接照抄当作宿主地址。</p>
+<h2 id="section-3">3. 国内和国际模型选择</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>推荐默认模型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>国内</td>
+<td><code>cn:deepseek-v4.1-flash</code></td>
+</tr>
+<tr>
+<td>国际</td>
+<td><code>global:fast-model</code>、<code>global:default-model</code></td>
+</tr>
+<tr>
+<td>国际 GPT</td>
+<td><code>global:gpt-6-sol</code>、<code>global:gpt-6.1-sol</code>、<code>global:gpt-6-luna</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>国内推荐 <code>cn:deepseek-v4.1-flash</code>：在同类评测里它是「判分全过 + 解码最快 + 单轮积分最省」三项同时最好的一档。对照 <code>cn:fast-model</code> 当前路由到 <code>glm-5.3-flash</code>（能力低一档、单价更高），<code>cn:deepseek-v4-pro</code> 单价约为它的 8 倍且在困难题上会截断输出。评测脚本与完整对照表见 <code>docs/model-notes.md</code>。</p>
+<p><code>cn:default-model</code> 不可用：国内上游没有这个别名，会返回 <code>11102 model [default-model] service info not found</code>。国际侧的 <code>global:default-model</code> 仍然可用，两者不要混用。</p>
+<p>GPT-6.1 Sol 初次用 <code>max_tokens=32</code> 测试会返回空正文且 <code>finish_reason=length</code>；设置 <code>max_tokens=256</code>、<code>reasoning_effort=low</code> 后正常。上限过低会让思考在正文前就花完预算，短任务建议从 256 起。可直接参考 <code>配置示例/codex-gpt6.1-sol.toml</code>。</p>
+<p><code>cn:</code> 和 <code>global:</code> 是网关路由前缀，必须随模型名一起填写。没有前缀的裸模型名走国内版。</p>
+<p><strong>模型名必须写，不能留空。</strong> 网关不会替你选默认模型：空模型名会原样发给上游并返回 <code>11102 model [] service info not found</code>（实测 503）。<code>auto</code> 是国内侧的自动路由别名，实测落点是一个更贵的模型，不适合当日常默认。</p>
+<p>其他模型到后台「连接测试 → 读取服务模型列表」查看，或在部署目录执行：</p>
+<pre><code class="language-powershell">$cfg = Get-Content '.\config.json' -Raw -Encoding UTF8 | ConvertFrom-Json
+$headers = @{ Authorization = 'Bearer ' + $cfg.api_key }
+(Invoke-RestMethod 'http://127.0.0.1:7863/v1/models' -Headers $headers).data.id
+</code></pre>
+<p>返回列表含静态模型名；出现在列表里不代表每个账号都能调用。先测试一条，再配置为客户端默认。账号轮转发生在同一版本内，普通客户端请求不能保证固定使用某个账号。</p>
+<h2 id="section-4">4. CC Switch 配置</h2>
+<p>在 <a href="https://github.com/farion1231/cc-switch">CC Switch</a> 中选择对应应用，新增两个自定义供应商，分别命名为 <code>WorkBuddy 国内</code>、<code>WorkBuddy 国际</code>。</p>
+<p><strong>Codex 供应商：</strong></p>
+<ol>
+<li>Base URL 填 <code>http://127.0.0.1:8787/v1</code>，密钥填当前 API Key。</li>
+<li>协议设为 Responses，配置中使用 <code>wire_api = "responses"</code>。</li>
+<li>国内默认模型填 <code>cn:deepseek-v4.1-flash</code>；国际填 <code>global:fast-model</code>。</li>
+<li>参考 <code>配置示例/codex-cn.toml</code> 或 <code>codex-global.toml</code>，模板使用 <code>WORKBUDDY_API_KEY</code> 环境变量。</li>
+<li>保存并启用对应供应商，完全退出并重开 Codex。模型前缀决定版本。</li>
+</ol>
+<p><strong>Claude Code 供应商：</strong></p>
+<ol>
+<li>Base URL 填 <code>http://127.0.0.1:8787</code>，<strong>不加 /v1</strong>。</li>
+<li>密钥填当前 API Key；选择 Anthropic / Messages 协议。</li>
+<li>国内的 Sonnet / Haiku / Opus 槽位都填 <code>cn:deepseek-v4.1-flash</code>（国内没有可用的 Opus 替代）；国际相应使用 <code>global:</code> 前缀。</li>
+<li>这些是客户端别名映射，并不表示上游实际提供原生 Claude Sonnet / Opus。</li>
+<li>参考 <code>配置示例/claude-cn.json</code>、<code>claude-global.json</code>，保存、启用并重开 Claude Code。</li>
+</ol>
+<h2 id="section-5">5. Codex 手动接入</h2>
+<p>先备份 <code>~/.codex/config.toml</code>，把模板中的供应商段<strong>合并</strong>到现有配置，保留其他项目、权限和插件配置；不要用示例覆盖整个文件。</p>
+<pre><code class="language-toml">model = &quot;global:fast-model&quot;
+model_provider = &quot;workbuddy_global&quot;
+
+[model_providers.workbuddy_global]
+name = &quot;WorkBuddy Global&quot;
+base_url = &quot;http://127.0.0.1:8787/v1&quot;
+env_key = &quot;WORKBUDDY_API_KEY&quot;
+wire_api = &quot;responses&quot;
+requires_openai_auth = false
+supports_websockets = false
+</code></pre>
+<p>在部署目录的 PowerShell 里设置用户环境变量：</p>
+<pre><code class="language-powershell">$cfg = Get-Content '.\config.json' -Raw -Encoding UTF8 | ConvertFrom-Json
+[Environment]::SetEnvironmentVariable('WORKBUDDY_API_KEY', $cfg.api_key, 'User')
+$env:WORKBUDDY_API_KEY = $cfg.api_key
+</code></pre>
+<p>然后完全退出并重开 Codex 和终端。修改网关密钥后要重复这一步。国内版改用 <code>codex-cn.toml</code>。如果 CC Switch 管理 Codex，请在供应商里调整，避免手动配置被下次切换覆盖。</p>
+<p>当前官方 Codex 使用 Responses 协议；本地兼容层是 HTTP/SSE，不支持 Responses WebSocket。参见<a href="https://developers.openai.com/codex/config-reference">官方配置参考</a>。</p>
+<h2 id="section-6">6. Claude Code 手动接入</h2>
+<p>可以把模板的 <code>env</code> 字段<strong>合并</strong>进 <code>~/.claude/settings.json</code>，保留已有设置。也可以在会话内临时设置：</p>
+<pre><code class="language-powershell">$cfg = Get-Content '.\config.json' -Raw -Encoding UTF8 | ConvertFrom-Json
+$env:ANTHROPIC_BASE_URL = 'http://127.0.0.1:8787'
+$env:ANTHROPIC_AUTH_TOKEN = $cfg.api_key
+Remove-Item Env:ANTHROPIC_API_KEY -ErrorAction SilentlyContinue
+$env:ANTHROPIC_DEFAULT_SONNET_MODEL = 'global:fast-model'
+$env:ANTHROPIC_DEFAULT_OPUS_MODEL = 'global:default-model'
+$env:ANTHROPIC_DEFAULT_HAIKU_MODEL = 'global:fast-model'
+claude --model 'global:fast-model'
+</code></pre>
+<p>此方式只影响当前终端及其启动的进程。国内版把所有 <code>global:</code> 换成 <code>cn:</code>。如果之前启用了 Bedrock、Vertex 或其他网关，需要先在客户端切到自定义 Anthropic 供应商。</p>
+<p><a href="https://code.claude.com/docs/en/model-config">Claude Code 模型配置文档</a>。本地 Messages 接口已验证，原生 Claude 专属功能不保证都能由转换层实现。</p>
+<h2 id="section-7">7. Cherry Studio / OpenAI Chat 客户端</h2>
+<p>新增「OpenAI 兼容」供应商：</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API 地址</td>
+<td><code>http://127.0.0.1:7863/v1</code></td>
+</tr>
+<tr>
+<td>API Key</td>
+<td>从 <code>复制API密钥.cmd</code> 获取</td>
+</tr>
+<tr>
+<td>国内模型 ID</td>
+<td><code>cn:deepseek-v4.1-flash</code></td>
+</tr>
+<tr>
+<td>国际模型 ID</td>
+<td><code>global:fast-model</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Cherry Studio 会补全请求路径；若你的版本会重复拼接 <code>/v1</code>，地址改填 <code>http://127.0.0.1:7863</code>。最终请求应为<strong>一个</strong> <code>/v1/chat/completions</code>。其他客户端若支持协议选择，选 OpenAI Chat Completions。</p>
+<p>保存后手动添加模型或读取列表，开一个新会话验证。初次先关闭联网搜索、图像等额外功能，确认纯文本对话正常后再测工具功能。</p>
+<h2 id="section-8">8. PowerShell / Python 调用</h2>
+<p>PowerShell 国际版 Chat 示例：</p>
+<pre><code class="language-powershell">$cfg = Get-Content '.\config.json' -Raw -Encoding UTF8 | ConvertFrom-Json
+$body = @{ model='global:fast-model'; messages=@(@{role='user'; content='请给出整理项目 README 的三个建议。'}); stream=$false; max_tokens=128 } | ConvertTo-Json -Depth 8
+$reply = Invoke-RestMethod 'http://127.0.0.1:7863/v1/chat/completions' -Method Post -Headers @{Authorization=('Bearer '+$cfg.api_key)} -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($body)) -TimeoutSec 150
+$reply.choices[0].message.content
+</code></pre>
+<p>国内版把 model 改成 <code>cn:deepseek-v4.1-flash</code>。<code>使用入口\api-example.py</code> 只用 Python 标准库，不需要安装 SDK：</p>
+<pre><code class="language-powershell">&amp; '.\使用入口\API测试.cmd'
+# 或
+python '.\使用入口\api-example.py' --realm global --protocol chat --prompt '请给出整理项目 README 的三个建议。'
+</code></pre>
+<p><code>--protocol</code> 可选 <code>chat</code>、<code>responses</code>、<code>messages</code>；<code>--realm</code> 可选 <code>cn</code>、<code>global</code>。只看模型列表用 <code>--models</code>，不发送对话。示例自动读取当前网关密钥，默认回复上限 128 Token；这只是回复上限，输入与上游额外开销仍会计费。</p>
+<h2 id="section-9">9. 账号、积分与定时任务</h2>
+<p>账号管理页把国内和国际账号分成两个资源池，可搜索和按版本筛选。每行的「参与调用」可单独纳入或排除账号，分组标题的勾选框可全选该版本。该选择会保存并在重启后保留；未勾选的账号不会被普通 API 请求选中。</p>
+<p>取消勾选只影响普通 API 调用，不影响自动签到、凭据刷新、余额查询或其他已启用的自动任务。系统检测到凭据失效时仍会禁用相应账号。</p>
+<p>添加账号时选择正确版本，生成官方登录链接，完成 <strong>CLI 授权</strong> 后返回页面等待自动保存。只登录到账号首页不代表 CLI 授权完成。也支持导入 <code>.json</code> / <code>.info</code>；旧国内凭据的毫秒有效期在副本中会转成秒。</p>
+<p>积分数据来自上游余额查询，工作台会定时刷新，也可手动「查询积分」。国内和国际余额分别汇总；查询失败的账号显示未知，不计入已知余额。两个版本的积分不能互相转移。</p>
+<p>默认排程（北京时间）：签到／旅行 09、21 点；国内活跃上报 10 点；Token 保活 22 点；开学季 12 点；夜猫子 01 点。页面可独立修改时间与开关，保存时会重启网关。</p>
+<p>国际版每日签到接口目前返回「签到活动未开启或已过期」，不能把国际账号送到国内签到入口。国际版的每日活跃奖励与国内签到不同：官方要求在客户端开始对话，反代请求是否计入、奖励是否到账由上游决定。<a href="https://www.workbuddy.ai/pricing/">官方奖励页面</a>。</p>
+<p>「国际版日常对话任务」是每账号独立配置、默认关闭。启用后北京时间 06:00–07:00 随机执行，默认回复上限 64 Token，每账号每天至多一次成功执行；只有明确的模型不可用拒绝才允许换一次模型；超时、结果未知或奖励未到账不重试；错过窗口不补发；失败或服务中断会暂停，需要检查后手动恢复，恢复也不重发当天已尝试的任务。输出保存在 <code>output\daily-tasks</code>。</p>
+<p>日常任务默认「自动省积分」：读取该账号的实时模型目录，优先当前免费或实测零扣费的模型，否则选不超过 0.34 倍的最低已知倍率模型。免费活动已过期时，0 倍标签不视为免费依据。</p>
+<p>国际版模拟活跃事件上报已停用。随机时间只用于分散负载，不用于规避识别，也不保证获得奖励。官方禁止制造虚假互动。<a href="https://www.workbuddy.ai/document/acceptable-use-policy">官方使用政策</a>。</p>
+<h2 id="section-10">10. 提示词与高级配置</h2>
+<p>后台「接入与提示词」可选择透传客户端提示词（默认），或自定义系统提示词。自定义模式会替换客户端的 system / developer 提示词，因此会影响 Codex、Claude Code 的工作指令；日常使用建议保留透传。</p>
+<p><code>config.json</code> 是真实配置。手动编辑前备份，保持合法 JSON，改完用 <code>重启服务.cmd</code>。常用字段：</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>api_key</code></td>
+<td>网关密钥，变更后重启并刷新接入信息，更新客户端</td>
+</tr>
+<tr>
+<td><code>listen</code></td>
+<td>监听地址，默认 <code>127.0.0.1:7863</code></td>
+</tr>
+<tr>
+<td><code>schedule.*_enabled</code> / <code>*_hours</code></td>
+<td>各任务开关与 0–23 整点列表</td>
+</tr>
+<tr>
+<td><code>global.enabled</code></td>
+<td>是否提供国际版路由</td>
+</tr>
+<tr>
+<td><code>pool.max_in_flight</code></td>
+<td>每账号同时请求上限，默认 3</td>
+</tr>
+<tr>
+<td><code>pool.breaker_threshold</code></td>
+<td>连续失败多少次进入熔断</td>
+</tr>
+<tr>
+<td><code>pool.expiring_soon</code></td>
+<td>快过期积分优先消耗的窗口，默认 7 天</td>
+</tr>
+<tr>
+<td><code>upstream.timeout_seconds</code></td>
+<td>上游请求超时秒数，默认 120</td>
+</tr>
+<tr>
+<td><code>session_sticky.enabled</code></td>
+<td>同一会话尽量保持同一账号</td>
+</tr>
+<tr>
+<td><code>prompt.mode</code></td>
+<td><code>passthrough</code> 或 <code>custom</code></td>
+</tr>
+<tr>
+<td><code>features.sanitize_blacklist_fingerprints</code></td>
+<td>出站字段清洗开关</td>
+</tr>
+<tr>
+<td><code>upstash.url</code> / <code>upstash.token</code></td>
+<td>可选：把池状态镜像到 Upstash Redis</td>
+</tr>
+</tbody>
+</table></div>
+<p>端口 7863、7864、8787 在启动器、工作台与兼容层之间是硬编码关联的，只改 <code>listen</code> 会导致工作台和兼容层失联，需要同时改 <code>workbench/server.py</code> 的 <code>PORT</code>、<code>compat/server.py</code> 的 <code>uvicorn.run(port=...)</code> 以及各启动脚本。</p>
+<h2 id="section-11">11. 常见问题</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>现象</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>后台无法打开／Connection refused</td>
+<td>先双击 <code>启动服务.cmd</code>；确认三个端口都通（<code>检查服务.cmd</code>）</td>
+</tr>
+<tr>
+<td>401</td>
+<td>重新复制当前网关密钥；旧密钥默认已不放行</td>
+</tr>
+<tr>
+<td>404 / Responses 不存在</td>
+<td>Codex 用 <code>8787/v1</code>；Claude Code 用 <code>8787</code> 根地址，检查是否重复 <code>/v1</code></td>
+</tr>
+<tr>
+<td>端口被占用</td>
+<td>检查是否还有另一份部署在跑；不要随意结束陌生进程</td>
+</tr>
+<tr>
+<td><code>all accounts unavailable</code> / 503</td>
+<td>查看对应版本的账号是否冷却、暂停、凭据过期或积分不足</td>
+</tr>
+<tr>
+<td>国际模型用了国内积分</td>
+<td>检查实际发出的 model 是否带 <code>global:</code>；裸名默认国内</td>
+</tr>
+<tr>
+<td>模型列表有但调用失败</td>
+<td>列表不保证套餐权限；国内先用 <code>cn:deepseek-v4.1-flash</code>、国际先用 <code>global:fast-model</code> 验证</td>
+</tr>
+<tr>
+<td><code>11102 model [...] service info not found</code></td>
+<td>模型名写错或该账号不服务此模型；换回推荐模型</td>
+</tr>
+<tr>
+<td><code>11140 request illegal</code></td>
+<td>上游 chat 通道封禁，与 token 无效不同（计费接口仍可用）；先重登，无效则该号只能换号</td>
+</tr>
+<tr>
+<td><code>14018 Credits exhausted</code></td>
+<td>该账号积分耗尽，chat 通道本身是通的</td>
+</tr>
+<tr>
+<td><code>11-128</code></td>
+<td>请求没被识别为官方客户端；用网关而不是手写裸 POST 探测</td>
+</tr>
+<tr>
+<td>CLI 授权一直未完成</td>
+<td>重新打开当前生成的链接，确认完成 CLI 授权而非只进入首页</td>
+</tr>
+<tr>
+<td>任务没执行</td>
+<td>确认开关、账号版本、时间窗口，以及电脑保持运行</td>
+</tr>
+<tr>
+<td>日常任务失败后停止</td>
+<td>查看该账号错误并解决，然后点「恢复后续排程」；当天不重复执行</td>
+</tr>
+<tr>
+<td>兼容层启动失败</td>
+<td>运行 <code>install.ps1</code> 重建 <code>runtime\venv</code>，确认 <code>fastapi</code>/<code>uvicorn</code>/<code>httpx</code> 已装</td>
+</tr>
+<tr>
+<td>改了 Go 代码没生效</td>
+<td>必须 <code>build.ps1</code> 重新编译并重启网关，改源码不会自动生效</td>
+</tr>
+</tbody>
+</table></div>
+<p>日志位于 <code>logs</code>：<code>server.stderr.log</code>、<code>workbench.stderr.log</code>、<code>compat.stderr.log</code>。<code>compat.log</code> 会记录完整请求体，属于敏感文件，不要在排查时全量 grep 或粘贴到外部。</p>
+<h2 id="section-12">12. 备份与迁移</h2>
+<p>重要数据：<code>auths</code>、<code>config.json</code>、<code>data</code>、<code>compat/config.json</code>、<code>使用入口</code>。先停止服务，再复制备份。不要删掉 <code>auths</code> 后重启。</p>
+<p>迁移到新机器：把整个部署目录复制过去，删掉 <code>runtime</code> 后在目标机重新运行 <code>install.ps1</code>（会重建 Go/Python 环境并重新编译），账号与配置会保留。</p>
+<p><code>API密钥.txt</code>、<code>admin-access.txt</code>、<code>配置示例</code> 里的密钥需要在生成后自行保管；<code>auths</code> 含账号凭据。这些文件都在 <code>.gitignore</code> 里，不要提交到任何仓库。</p></main></body></html>

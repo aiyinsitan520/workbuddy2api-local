@@ -1,0 +1,12 @@
+# 按教程合并到现有 config.toml，使用 WORKBUDDY_API_KEY 环境变量。
+model = "global:gpt-6.1-sol"
+model_provider = "workbuddy_global"
+model_reasoning_effort = "low"
+
+[model_providers.workbuddy_global]
+name = "WorkBuddy GPT-6.1 Sol"
+base_url = "http://127.0.0.1:8787/v1"
+env_key = "WORKBUDDY_API_KEY"
+wire_api = "responses"
+requires_openai_auth = false
+supports_websockets = false
